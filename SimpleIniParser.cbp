@@ -31,9 +31,9 @@
 		<Compiler>
 			<Add option="-Wall" />
 		</Compiler>
-		<Unit filename="IniFile.cpp" />
-		<Unit filename="IniFile.hpp" />
-		<Unit filename="IniTest.cpp" />
+		<Unit filename="src\IniFile.cpp" />
+		<Unit filename="src\IniFile.hpp" />
+		<Unit filename="src\IniTest.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />
