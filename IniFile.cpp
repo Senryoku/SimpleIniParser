@@ -101,9 +101,9 @@ void IniFile::addValue(std::string Name, std::string Key, std::string Value)
 	}
 }
 
-IniFile::Section IniFile::getSection(std::string Name)
+IniFile::Section* IniFile::getSection(std::string Name)
 {
-	return *mySections[Name];
+	return mySections[Name];
 }
 
 std::string IniFile::getValue(std::string Name, std::string Key)

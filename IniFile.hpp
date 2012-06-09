@@ -76,7 +76,7 @@ class IniFile
 		 * @param Name Section's name
 		 * @return Section
 		**/
-		Section getSection(std::string Name);
+		Section* getSection(std::string Name);
 		/** @brief Tests if a section exists
 		 *
 		 * @param Name Section's name
