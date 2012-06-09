@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1339251324 source:f:\github\simpleiniparser\inifile.cpp
+	"IniFile.hpp"
+
+1339251072 f:\github\simpleiniparser\inifile.hpp
+	<map>
+	<fstream>
+
