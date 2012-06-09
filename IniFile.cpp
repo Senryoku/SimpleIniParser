@@ -1,5 +1,4 @@
 #include "IniFile.hpp"
-//#include <iostream>
 
 IniFile::IniFile()
 {
@@ -34,13 +33,11 @@ bool IniFile::load(std::string Path)
 			{
 				CurrentSection = new Section;
 				mySections.insert(std::make_pair(line.substr(1, line.find_first_of("]") - 1), CurrentSection));
-				//std::cout << "Add Section : " << line.substr(1, line.find_first_of("]") - 1) << std::endl;
 			} else if(line != "") {
 				key = line.substr(line.find_first_not_of(" "), line.find_first_of(" ="));
 				value = line.substr(line.find_first_of("=") + 1, line.length() - 1);
 				value = value.substr(value.find_first_not_of(" "), value.length() - 1);
 				CurrentSection->insert(std::make_pair(key, value));
-				//std::cout << "Add Entry : " << key << " " << value << std::endl;
 			}
 		}
 		File.close();
@@ -81,6 +78,29 @@ void IniFile::free()
 	mySections.clear();
 }
 
+void IniFile::addSection(std::string Name)
+{
+	if(!isSection(Name))
+	{
+		mySections.insert(std::make_pair(Name, new Section));
+	}
+}
+
+void IniFile::addValue(std::string Name, std::string Key, std::string Value)
+{
+	if(!isSection(Name))
+	{
+		mySections.insert(std::make_pair(Name, new Section));
+	}
+	Section *S = mySections[Name];
+	if(!isKey(Name, Key))
+	{
+		S->insert(std::make_pair(Key, Value));
+	} else {
+		(*S)[Key] = Value;
+	}
+}
+
 IniFile::Section IniFile::getSection(std::string Name)
 {
 	return *mySections[Name];
@@ -91,3 +111,7 @@ std::string IniFile::getValue(std::string Name, std::string Key)
 	return (*mySections[Name])[Key];
 }
 
+bool IniFile::isKey(std::string Name, std::string Key)
+{
+	return mySections.count(Name) && mySections[Name]->count(Key);
+}
