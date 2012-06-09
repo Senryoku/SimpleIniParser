@@ -73,7 +73,7 @@ bool IniFile::save(std::string Path)
 void IniFile::free()
 {
 	for(std::map<std::string, Section*>::iterator it = mySections.begin();
-		it != mySections.begin(); it++)
+		it != mySections.end(); it++)
 		delete it->second;
 	mySections.clear();
 }

@@ -17,3 +17,11 @@
 1339263902 source:d:\github\simpleiniparser\inifile.cpp
 	"IniFile.hpp"
 
+1339263931 source:d:\github\simpleiniparser\src\initest.cpp
+	<iostream>
+	"IniFile.hpp"
+
+1339281197 d:\github\simpleiniparser\src\inifile.hpp
+	<map>
+	<fstream>
+
