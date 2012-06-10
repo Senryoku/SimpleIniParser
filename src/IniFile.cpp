@@ -1,5 +1,7 @@
 #include "IniFile.hpp"
 
+//#include <iostream>
+
 IniFile::IniFile()
 {
 }
@@ -33,10 +35,20 @@ bool IniFile::load(std::string Path)
 			{
 				CurrentSection = new Section;
 				mySections.insert(std::make_pair(line.substr(1, line.find_first_of("]") - 1), CurrentSection));
-			} else if(line != "") {
-				key = line.substr(line.find_first_not_of(" "), line.find_first_of(" ="));
-				value = line.substr(line.find_first_of("=") + 1, line.length() - 1);
-				value = value.substr(value.find_first_not_of(" "), value.length() - 1);
+			} else if(line != "" && line != "\n") {
+				key = line.substr(line.find_first_not_of(" "));
+				key = line.substr(0, line.find_first_of(" ="));
+				if(line.find_first_of("=") + 1>= line.length())
+				{
+					value = "";
+				} else  {
+					value = line.substr(line.find_first_of("=") + 1);
+					if(value.find_first_not_of(" ") > value.length())
+						value = "";
+					else
+						value = value.substr(value.find_first_not_of(" "));
+				}
+				//std::cout << key << " = " << value << std::endl;
 				CurrentSection->insert(std::make_pair(key, value));
 			}
 		}
