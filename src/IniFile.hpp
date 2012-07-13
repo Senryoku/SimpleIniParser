@@ -28,14 +28,14 @@ class IniFile
 		 * Loads the given file
 		 * @param Path Path to an existing .ini file
 		**/
-		IniFile(const std::string&Path);
+		IniFile(const std::string& Path);
 		/** @brief Default destructor */
 		~IniFile();
 
 		/** @brief Return current file */
 		std::string getPath() { return myPath; }
 		/** @brief Sets path used by save() and load() */
-		void setPath(const std::string&Path) { myPath = Path; }
+		void setPath(const std::string& Path) { myPath = Path; }
 
 		/** @brief Re-Loads current file */
 		bool load();
@@ -43,7 +43,7 @@ class IniFile
 		 *
 		 * @param Path File to load
 		**/
-		bool load(const std::string&Path);
+		bool load(const std::string& Path);
 		/** @brief Saves current file */
 		bool save();
 		/** @brief Saves content into given file
@@ -78,31 +78,47 @@ class IniFile
 		 * @return Section
 		**/
 		Section* getSection(const std::string&Name);
+
 		/** @brief Tests if a section exists
 		 *
 		 * @param Name Section's name
 		 * @return true if section exists
 		**/
-		bool isSection(const std::string&Name) { return mySections.count(Name); }
+		bool isSection(const std::string& Name) { return mySections.count(Name); }
+
 		/** @brief Tests if a key (in a given section) exists
 		 *
 		 * @param Name Section's name
 		 * @param Key Key
 		 * @return true if section/key exists
 		**/
-		bool isKey(const std::string&Name, const std::string&Key);
+		bool isKey(const std::string& Name, const std::string& Key);
+
 		/** @brief Search for a value
 		 *
 		 * @param Name Section's name
 		 * @param Key Key
 		 * @return Value
 		**/
-		std::string getValue(const std::string&Name, const std::string&Key);
+		std::string getValue(const std::string& Name, const std::string& Key);
+
 		/** @brief Returns sections count
 		 *
 		 * @return Sections count
 		**/
 		unsigned int getSectionCount() { return mySections.size(); }
+
+		/** @brief Used to iterate on Sections
+		 *
+		 * Use ->first to retrieve Section's name
+		 * ->second for Section's pointer
+		**/
+		std::map<std::string, Section*>::const_iterator getSectionIterator() { return mySections.begin(); }
+
+		/** @brief Used to iterate on Sections (End test)
+		 *
+		**/
+		std::map<std::string, Section*>::const_iterator getSectionEnd() { return mySections.end(); }
 
 	private:
 		std::string myPath; ///< Current File
