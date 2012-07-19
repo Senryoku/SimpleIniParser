@@ -2,7 +2,6 @@
 #define _INIFILE_HPP_
 
 #include <map>
-#include <set>
 #include <fstream>
 
 /*******************************************************************************
