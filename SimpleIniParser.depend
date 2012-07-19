@@ -25,14 +25,15 @@
 	<map>
 	<fstream>
 
-1339950814 source:f:\github\simpleiniparser\src\inifile.cpp
+1342686724 source:f:\github\simpleiniparser\src\inifile.cpp
 	"IniFile.hpp"
 
-1342199564 f:\github\simpleiniparser\src\inifile.hpp
+1342688039 f:\github\simpleiniparser\src\inifile.hpp
 	<map>
+	<vector>
 	<fstream>
 
-1339950814 source:f:\github\simpleiniparser\src\initest.cpp
+1342687510 source:f:\github\simpleiniparser\src\initest.cpp
 	<iostream>
 	"IniFile.hpp"
 

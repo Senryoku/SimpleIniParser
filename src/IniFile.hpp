@@ -2,6 +2,7 @@
 #define _INIFILE_HPP_
 
 #include <map>
+#include <vector>
 #include <fstream>
 
 /*******************************************************************************
@@ -15,12 +16,33 @@
  * https://github.com/Senryoku/SimpleIniParser
  ******************************************************************************/
 
-class IniFile
+namespace Ini {
+	class Pair : public std::pair<std::string, std::string>
+	{
+		public:
+			Pair(std::pair<std::string, std::string> P) : std::pair<std::string, std::string>(P) {}
+
+			const std::string& getKey() { return first; }
+			const std::string& getValue() { return second; }
+	};
+
+	class Section : public std::map<std::string, std::string>
+	{
+		private:
+			std::string myName;
+		public:
+			Section(std::string Name) : myName(Name) {}
+
+			const std::string& getName() { return myName; }
+			const std::string& getValue(const std::string& Key) { return (*this)[Key]; }
+	};
+}
+
+using namespace Ini;
+
+class IniFile : public std::vector<Section*>
 {
 	public:
-		typedef std::pair<std::string, std::string>	Pair;
-		typedef std::map<std::string, std::string>	Section;
-
 		/** @brief Default constructor */
 		IniFile();
 		/** @brief Constructor with file
@@ -50,7 +72,7 @@ class IniFile
 		 *
 		 * @param Path Ini File
 		**/
-		bool save(const std::string&Path);
+		bool save(const std::string& Path);
 
 		/** @brief Frees current data **/
 		void free();
@@ -59,7 +81,7 @@ class IniFile
 		 *
 		 * @param Name New section's name
 		**/
-		void addSection(const std::string&Name);
+		void addSection(const std::string& Name);
 
 		/** @brief Add/Modify a value
 		 *
@@ -69,8 +91,8 @@ class IniFile
 		 * @param Key Key
 		 * @param Value Value
 		**/
-		void addValue(const std::string&Name, const std::string&Key, const std::string&Value = "");
-		void addKey(const std::string&Name, const std::string&Key, const std::string&Value = "") { addValue(Name, Key, Value); }
+		void addValue(const std::string& Name, const std::string& Key, const std::string& Value = "");
+		void addKey(const std::string& Name, const std::string& Key, const std::string& Value = "") { addValue(Name, Key, Value); }
 
 		/** @brief Returns section "Name"
 		 *
@@ -84,7 +106,7 @@ class IniFile
 		 * @param Name Section's name
 		 * @return true if section exists
 		**/
-		bool isSection(const std::string& Name) { return mySections.count(Name); }
+		bool isSection(const std::string& Name);
 
 		/** @brief Tests if a key (in a given section) exists
 		 *
@@ -106,24 +128,28 @@ class IniFile
 		 *
 		 * @return Sections count
 		**/
-		unsigned int getSectionCount() { return mySections.size(); }
+		unsigned int getSectionCount() { return (*this).size(); }
 
 		/** @brief Used to iterate on Sections
 		 *
-		 * Use ->first to retrieve Section's name
-		 * ->second for Section's pointer
+		 * Example :
+		 * @code
+		 * for(IniFile::const_iterator it = Config.getIterator();
+		 * it != Config.getEnd(); it++)
+		 * 	std::cout << "[" << (*it)->getName() << "]" << std::endl;
+		 * @see getEnd()
 		**/
-		std::map<std::string, Section*>::const_iterator getSectionIterator() { return mySections.begin(); }
+		IniFile::const_iterator getIterator() { return (*this).begin(); }
 
 		/** @brief Used to iterate on Sections (End test)
 		 *
 		**/
-		std::map<std::string, Section*>::const_iterator getSectionEnd() { return mySections.end(); }
+		IniFile::const_iterator getEnd() { return (*this).end(); }
+
+		Section* operator[](const std::string& Name);
 
 	private:
 		std::string myPath; ///< Current File
-		std::map<std::string, Section*> mySections; ///< Data
-
 };
 
 #endif // _INIFILE_HPP_

@@ -33,8 +33,8 @@ bool IniFile::load(const std::string& Path)
 		{
 			if(line[0] == '[')
 			{
-				CurrentSection = new Section;
-				mySections.insert(std::make_pair(line.substr(1, line.find_first_of("]") - 1), CurrentSection));
+				CurrentSection = new Section(line.substr(1, line.find_first_of("]") - 1));
+				(*this).push_back(CurrentSection);
 			} else if(line != "" && line != "\n") {
 				key = line.substr(line.find_first_not_of(" "));
 				key = line.substr(0, line.find_first_of(" ="));
@@ -68,12 +68,12 @@ bool IniFile::save(const std::string& Path)
 	std::ofstream File(Path.c_str());
 	if(File)
 	{
-		for(std::map<std::string, Section*>::iterator it = mySections.begin();
-			it != mySections.end(); it++)
+		for(IniFile::iterator it = (*this).begin();
+			it != (*this).end(); it++)
 		{
-			File << "[" << it->first << "]" << std::endl;
-			for(Section::iterator it2 = it->second->begin();
-				it2 != it->second->end(); it2++)
+			File << "[" << (*it)->getName() << "]" << std::endl;
+			for(Section::iterator it2 = (*it)->begin();
+				it2 != (*it)->end(); it2++)
 				File << it2->first << " = " << it2->second << std::endl;
 			File << std::endl;
 		}
@@ -84,27 +84,24 @@ bool IniFile::save(const std::string& Path)
 
 void IniFile::free()
 {
-	for(std::map<std::string, Section*>::iterator it = mySections.begin();
-		it != mySections.end(); it++)
-		delete it->second;
-	mySections.clear();
+	for(IniFile::iterator it = (*this).begin();
+		it != (*this).end(); it++)
+		delete (*it);
+	(*this).clear();
 }
 
 void IniFile::addSection(const std::string& Name)
 {
 	if(!isSection(Name))
 	{
-		mySections.insert(std::make_pair(Name, new Section));
+		(*this).push_back(new Section(Name));
 	}
 }
 
 void IniFile::addValue(const std::string& Name, const std::string& Key, const std::string& Value)
 {
-	if(!isSection(Name))
-	{
-		mySections.insert(std::make_pair(Name, new Section));
-	}
-	Section *S = mySections[Name];
+	addSection(Name);
+	Section *S = (*this)[Name];
 	if(!isKey(Name, Key))
 	{
 		S->insert(std::make_pair(Key, Value));
@@ -113,17 +110,39 @@ void IniFile::addValue(const std::string& Name, const std::string& Key, const st
 	}
 }
 
-IniFile::Section* IniFile::getSection(const std::string& Name)
+Ini::Section* IniFile::getSection(const std::string& Name)
 {
-	return mySections[Name];
+	return (*this)[Name];
+}
+
+bool IniFile::isSection(const std::string& Name)
+{
+	for(IniFile::const_iterator it = begin();
+		it != end(); it++)
+		if((*it)->getName() == Name) return true;
+	return false;
 }
 
 std::string IniFile::getValue(const std::string& Name, const std::string& Key)
 {
-	return (*mySections[Name])[Key];
+	return (*(*this)[Name])[Key];
 }
 
 bool IniFile::isKey(const std::string& Name, const std::string& Key)
 {
-	return mySections.count(Name) && mySections[Name]->count(Key);
+	return isSection(Name) && (*this)[Name]->count(Key);
 }
+
+Section* IniFile::operator[](const std::string& Name)
+{
+	for(IniFile::iterator it = (*this).begin();
+		it != (*this).end(); it++)
+	{
+		if((*it)->getName() == Name) return (*it);
+	}
+
+	Section* newSection = new Section(Name);
+	(*this).push_back(newSection);
+	return newSection;
+}
+
