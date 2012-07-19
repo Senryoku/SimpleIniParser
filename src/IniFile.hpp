@@ -2,7 +2,7 @@
 #define _INIFILE_HPP_
 
 #include <map>
-#include <vector>
+#include <set>
 #include <fstream>
 
 /*******************************************************************************
@@ -40,7 +40,7 @@ namespace Ini {
 
 using namespace Ini;
 
-class IniFile : public std::vector<Section*>
+class IniFile : public std::map<std::string, Section*>
 {
 	public:
 		/** @brief Default constructor */
@@ -136,7 +136,7 @@ class IniFile : public std::vector<Section*>
 		 * @code
 		 * for(IniFile::const_iterator it = Config.getIterator();
 		 * it != Config.getEnd(); it++)
-		 * 	std::cout << "[" << (*it)->getName() << "]" << std::endl;
+		 * 	std::cout << "[" << it->first << "]" << std::endl;
 		 * @see getEnd()
 		**/
 		IniFile::const_iterator getIterator() { return (*this).begin(); }
@@ -145,8 +145,6 @@ class IniFile : public std::vector<Section*>
 		 *
 		**/
 		IniFile::const_iterator getEnd() { return (*this).end(); }
-
-		Section* operator[](const std::string& Name);
 
 	private:
 		std::string myPath; ///< Current File

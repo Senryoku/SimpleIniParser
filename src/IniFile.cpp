@@ -34,7 +34,7 @@ bool IniFile::load(const std::string& Path)
 			if(line[0] == '[')
 			{
 				CurrentSection = new Section(line.substr(1, line.find_first_of("]") - 1));
-				(*this).push_back(CurrentSection);
+				insert(std::make_pair(CurrentSection->getName(), CurrentSection));
 			} else if(line != "" && line != "\n") {
 				key = line.substr(line.find_first_not_of(" "));
 				key = line.substr(0, line.find_first_of(" ="));
@@ -71,9 +71,9 @@ bool IniFile::save(const std::string& Path)
 		for(IniFile::iterator it = (*this).begin();
 			it != (*this).end(); it++)
 		{
-			File << "[" << (*it)->getName() << "]" << std::endl;
-			for(Section::iterator it2 = (*it)->begin();
-				it2 != (*it)->end(); it2++)
+			File << "[" << it->first << "]" << std::endl;
+			for(Section::iterator it2 = it->second->begin();
+				it2 != it->second->end(); it2++)
 				File << it2->first << " = " << it2->second << std::endl;
 			File << std::endl;
 		}
@@ -86,7 +86,7 @@ void IniFile::free()
 {
 	for(IniFile::iterator it = (*this).begin();
 		it != (*this).end(); it++)
-		delete (*it);
+		delete it->second;
 	(*this).clear();
 }
 
@@ -94,7 +94,7 @@ void IniFile::addSection(const std::string& Name)
 {
 	if(!isSection(Name))
 	{
-		(*this).push_back(new Section(Name));
+		insert(std::make_pair(Name, new Section(Name)));
 	}
 }
 
@@ -117,10 +117,7 @@ Ini::Section* IniFile::getSection(const std::string& Name)
 
 bool IniFile::isSection(const std::string& Name)
 {
-	for(IniFile::const_iterator it = begin();
-		it != end(); it++)
-		if((*it)->getName() == Name) return true;
-	return false;
+	return count(Name);
 }
 
 std::string IniFile::getValue(const std::string& Name, const std::string& Key)
@@ -131,18 +128,5 @@ std::string IniFile::getValue(const std::string& Name, const std::string& Key)
 bool IniFile::isKey(const std::string& Name, const std::string& Key)
 {
 	return isSection(Name) && (*this)[Name]->count(Key);
-}
-
-Section* IniFile::operator[](const std::string& Name)
-{
-	for(IniFile::iterator it = (*this).begin();
-		it != (*this).end(); it++)
-	{
-		if((*it)->getName() == Name) return (*it);
-	}
-
-	Section* newSection = new Section(Name);
-	(*this).push_back(newSection);
-	return newSection;
 }
 
