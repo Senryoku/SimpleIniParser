@@ -111,16 +111,11 @@ void IniFile::addSection(const std::string& Name)
 	}
 }
 
-void IniFile::addValue(const std::string& Name, const std::string& Key, const std::string& Value)
+void IniFile::set(const std::string& Name, const std::string& Key, 
+				  const std::string& Value)
 {
 	addSection(Name);
-	Section *S = _data[Name];
-	if(!isKey(Name, Key))
-	{
-		S->insert(std::make_pair(Key, Value));
-	} else {
-		(*S)[Key] = Value;
-	}
+	(*_data[Name]).set(Key, Value);
 }
 
 const IniFile::Section& IniFile::getSection(const std::string& Name) const
@@ -128,16 +123,17 @@ const IniFile::Section& IniFile::getSection(const std::string& Name) const
 	return *_data.at(Name);
 }
 
-const std::string& IniFile::getValue(const std::string& Key) const throw(std::out_of_range)
+const std::string& IniFile::get(const std::string& Key) const throw(std::out_of_range)
 {
 	for(auto& s : _data)
-		if(s.second->isKey(Key)) return s.second->getValue(Key);
+		if(s.second->isKey(Key)) return s.second->get(Key);
 	throw std::out_of_range("IniFile : Key not found !");
 }
 
-const std::string& IniFile::getValue(const std::string& Name, const std::string& Key) const
+const std::string& IniFile::get(const std::string& Section, 
+								const std::string& Key) const
 {
-	return (*_data.at(Name)).at(Key);
+	return (*_data.at(Section)).at(Key);
 }
 
 bool IniFile::isSection(const std::string& Name) const

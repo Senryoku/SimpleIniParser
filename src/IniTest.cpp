@@ -4,7 +4,7 @@
 
 int main(void)
 {
-	IniFile Config = IniFile("Config.ini");
+	IniFile Config("Config.ini");
 	for(auto it = Config.begin();
 		it != Config.end(); it++)
 	{
@@ -16,10 +16,11 @@ int main(void)
 			std::cout << " " << it2->first << " = " << it2->second << std::endl;
 		}
 	}
-	std::cout << "Section1 : S1Key1 = " << Config.getSection("Section1").getValue("S1Key1") << std::endl;
-	std::cout << "Section1 : S1Key1 = " << Config["Section1"]["S1Key1"] << std::endl;
+	std::cout << "Section1 : S1Key1 = " << Config.getSection("Section1").get("S1Key1") << std::endl;
 	
-	Config.addKey("Section2", "NewKey", "WithValue!");
+	Config.set("Section1", "S1Key1", "NewValue!");
+	Config.set("Section2", "NewKey", "WithValue!");
+	std::cout << "Section1 : S1Key1 = " << Config["Section1"]["S1Key1"] << std::endl;
 	std::cout << "Section2 : NewKey = " << Config("Section2", "NewKey") << std::endl;
 	
 	Config.save("SavingTest.ini");

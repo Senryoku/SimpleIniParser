@@ -1,35 +1,91 @@
-#ifndef _INIFILE_HPP_
-#define _INIFILE_HPP_
+#pragma once
+
+/******************************************************************************/
+/*! \mainpage SimpleIniParser
+ * A really simple .ini file parser
+ *
+ * Does not support comments, formating is minimalistic
+ * Typical use :
+ * @code
+ * IniFile Config = IniFile("Config.ini");
+ * // Do something with the values :
+ * Option  = Config["SectionName"]["Key1"]; 
+ * Option2 = Config("SectionName", "Key2"); // There is different ways to get values
+ * Option3 = Config.get("UniqueKey");
+ * // Modify some values
+ * Config.set("SectionName", "Key1", Option); // Update Ini
+ * // Save the result on disc
+ * Config.save();
+ * \endcode
+ *
+ * Started on 08 June 2012
+ *
+ * Senryoku <maretverdant@gmail.com>
+ *
+ * https://github.com/Senryoku/SimpleIniParser
+ ******************************************************************************/
 
 #include <map>
 #include <fstream>
 
-/*******************************************************************************
- * SimpleIniParser
- * A really simple .ini file parser
- *
- * Does not support comments, formating is minimalistic
- *
- * Started on 08 June 2012
- * Senryoku <maretverdant@gmail.com>
- * https://github.com/Senryoku/SimpleIniParser
- ******************************************************************************/
-
+/** 
+ * Class representing a ini file in memory.
+ * Typical use :
+ * @code
+ * IniFile Config = IniFile("Config.ini");
+ * // Do something with the values :
+ * Option  = Config["SectionName"]["Key1"]; 
+ * Option2 = Config("SectionName", "Key2"); // There is different ways to get values
+ * Option3 = Config.get("UniqueKey");
+ * // Modify some values
+ * Config.set("SectionName", "Key1", Option); // Update Ini
+ * // Save the result on disc
+ * Config.save();
+ * \endcode
+**/
 class IniFile
 {
 	public:
+		/** Section Class
+		 * Contains (Key, Value) pairs
+		**/
 		class Section : public std::map<std::string, std::string>
 		{
 			private:
-				std::string _name;
+				std::string _name; ///< Section's name (identifier)
 			public:
+				/** Constructor
+				 * @param Name Name (Identifier) of the section
+				**/
 				Section(const std::string& Name) : _name(Name) {}
-
+				
+				/** @return Section's name **/
 				inline const std::string& getName() const { return _name; }
-				inline const std::string& getValue(const std::string& Key) const { return at(Key); }
-				inline std::string& operator[](const std::string& Key) { return std::map<std::string, std::string>::operator[](Key); }
-				inline const std::string& operator[](const std::string& Key) const { return getValue(Key); }
-				inline bool isKey(const std::string& Key) const { return count(Key) > 0; }
+				/** 
+				 * @param Key Valid Key
+				 * @return Value associated to Key
+				**/
+				inline const std::string& get(const std::string& Key) const 
+				{ return at(Key); }
+				/** Sets the value associated to Key
+				 * @param Key Key
+				 * @param Value associated to Key
+				**/
+				inline void set(const std::string& Key, 
+								const std::string& Value)
+				{ std::map<std::string, std::string>::operator[](Key) = Value; }
+				/** 
+				 * @param Key Valid Key
+				 * @return Value associated to Key
+				**/
+				inline const std::string& operator[](const std::string& Key) const 
+				{ return get(Key); }
+				/** 
+				 * @param Key Key
+				 * @return True if Key is a valid (existing) key, false otherwise
+				**/
+				inline bool isKey(const std::string& Key) const 
+				{ return count(Key) > 0; }
 		};
 		
 		using Map = std::map<std::string, Section*>;
@@ -43,13 +99,17 @@ class IniFile
 		**/
 		IniFile(const std::string& Path);
 		
+		/// Copy Constructor
 		IniFile(const IniFile&);
+		/// Move Constructor
 		IniFile(IniFile&&) =default;
 		
+		/// Copy assigment
 		IniFile& operator=(const IniFile&);
+		/// Move assigment
 		IniFile& operator=(IniFile&&) =default;
 		
-		/** @brief Default destructor */
+		/** @brief Destructor */
 		~IniFile();
 
 		/** @brief Return current file */
@@ -81,7 +141,7 @@ class IniFile
 		**/
 		void addSection(const std::string& Name);
 
-		/** @brief Add/Modify a value
+		/** @brief Adds/Modifies a value
 		 *
 		 * Creates Section if doesn't exist
 		 * If [Section]Key is already specified, replace associated value.
@@ -89,11 +149,8 @@ class IniFile
 		 * @param Key Key
 		 * @param Value Value
 		**/
-		void addValue(const std::string& Name, const std::string& Key, 
+		void set(const std::string& Name, const std::string& Key, 
 					  const std::string& Value = "");
-		inline void addKey(const std::string& Name, const std::string& Key, 
-						   const std::string& Value = "") 
-		{ addValue(Name, Key, Value); }
 
 		/** @brief Returns section "Name"
 		 *
@@ -101,27 +158,33 @@ class IniFile
 		 * @return Section
 		**/
 		const Section& getSection(const std::string& Name) const;
+		/// Syntactic sugar for getSection()
 		inline const Section& operator[](const std::string& Name) const 
 		{ return getSection(Name); }
-		
-		inline const std::string& operator()(const std::string& Section, 
-											 const std::string& Key) const 
-		{ return getSection(Section).getValue(Key); }
 
 		/** @brief Search for a value in any Section (the first found is returned)
 		 *
 		 * @param Key Key
 		 * @return Value
 		**/
-		const std::string& getValue(const std::string& Key) const throw(std::out_of_range);
+		const std::string& get(const std::string& Key) const throw(std::out_of_range);
 		
 		/** @brief Search for a value
 		 *
-		 * @param Name Section's name
+		 * @param Section Valid section's name
 		 * @param Key Key
 		 * @return Value
 		**/
-		const std::string& getValue(const std::string& Name, const std::string& Key) const;
+		const std::string& get(const std::string& Section, 
+							   const std::string& Key) const;
+		
+		/** Syntactic sugar for get(Section, Name);
+		 * @param Section Valid section's name 
+		 * @param Key Valid Key
+		**/
+		inline const std::string& operator()(const std::string& Section, 
+											 const std::string& Key) const 
+		{ return getSection(Section).get(Key); }
 
 		/** @brief Returns sections count
 		 *
@@ -136,16 +199,19 @@ class IniFile
 		 * for(auto it = Config.begin();
 		 * it != Config.end(); it++)
 		 * 	std::cout << "[" << it->first << "]" << std::endl;
+		 * \endcode
 		 * @see getEnd()
 		**/
 		Map::iterator begin() { return _data.begin(); }
-		Map::const_iterator begin() const { return _data.cbegin(); }
+		/// Const version of begin
+		Map::const_iterator cbegin() const { return _data.cbegin(); }
 
 		/** @brief Used to iterate on Sections (End test)
 		 *
 		**/
 		Map::iterator end() { return _data.end(); }
-		Map::const_iterator end() const { return _data.cend(); }
+		/// Const version of end
+		Map::const_iterator cend() const { return _data.cend(); }
 
 		/** @brief Tests if a section exists
 		 *
@@ -172,7 +238,5 @@ class IniFile
 	private:
 		std::string _path; ///< Current File
 		
-		Map			_data;
+		Map			_data; ///< Actual data (Packed into Sections)
 };
-
-#endif // _INIFILE_HPP_

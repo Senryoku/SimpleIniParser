@@ -26,4 +26,9 @@ run : $(EXEC)
 	./$(BIN)$(EXEC)
 
 clean:
-	/bin/rm -rf $(OBJ)*.o $(BIN)*
+	/bin/rm -rf $(OBJ)*.o $(BIN)*	
+.PHONY : clean
+
+doc:
+	doxygen
+.PHONY : doc
