@@ -1,7 +1,5 @@
 #include "IniFile.hpp"
 
-//#include <iostream>
-
 IniFile::IniFile()
 {
 }
@@ -11,14 +9,30 @@ IniFile::IniFile(const std::string& Path)
 	load(Path);
 }
 
+IniFile::IniFile(const IniFile& I) :
+	_path(I._path)
+{
+	for(auto S : I._data)
+		_data[S.first] = new Section(*S.second);
+}
+
+IniFile& IniFile::operator=(const IniFile& I)
+{
+	clear();
+	_path = I._path;
+	for(auto S : I._data)
+		_data[S.first] = new Section(*S.second);
+	return *this;
+}
+
 IniFile::~IniFile()
 {
-	free();
+	clear();
 }
 
 bool IniFile::load()
 {
-	return load(myPath);
+	return load(_path);
 }
 
 bool IniFile::load(const std::string& Path)
@@ -26,7 +40,7 @@ bool IniFile::load(const std::string& Path)
 	std::ifstream File(Path.c_str());
 	if(File)
 	{
-		free();
+		clear();
 		Section *CurrentSection;
 		std::string line, key, value;
 		while(std::getline(File, line))
@@ -34,7 +48,7 @@ bool IniFile::load(const std::string& Path)
 			if(line[0] == '[')
 			{
 				CurrentSection = new Section(line.substr(1, line.find_first_of("]") - 1));
-				insert(std::make_pair(CurrentSection->getName(), CurrentSection));
+				_data.insert(std::make_pair(CurrentSection->getName(), CurrentSection));
 			} else if(line != "" && line != "\n") {
 				key = line.substr(line.find_first_not_of(" "));
 				key = line.substr(0, line.find_first_of(" ="));
@@ -48,19 +62,18 @@ bool IniFile::load(const std::string& Path)
 					else
 						value = value.substr(value.find_first_not_of(" "));
 				}
-				//std::cout << key << " = " << value << std::endl;
 				CurrentSection->insert(std::make_pair(key, value));
 			}
 		}
 		File.close();
-		myPath = Path;
+		_path = Path;
 		return true;
 	} else { return false; }
 }
 
 bool IniFile::save()
 {
-	return save(myPath);
+	return save(_path);
 }
 
 bool IniFile::save(const std::string& Path)
@@ -68,8 +81,8 @@ bool IniFile::save(const std::string& Path)
 	std::ofstream File(Path.c_str());
 	if(File)
 	{
-		for(IniFile::iterator it = (*this).begin();
-			it != (*this).end(); it++)
+		for(auto it = _data.begin();
+			it != _data.end(); it++)
 		{
 			File << "[" << it->first << "]" << std::endl;
 			for(Section::iterator it2 = it->second->begin();
@@ -82,26 +95,26 @@ bool IniFile::save(const std::string& Path)
 	} else { return false; }
 }
 
-void IniFile::free()
+void IniFile::clear()
 {
-	for(IniFile::iterator it = (*this).begin();
-		it != (*this).end(); it++)
+	for(auto it = _data.begin();
+		it != _data.end(); it++)
 		delete it->second;
-	(*this).clear();
+	_data.clear();
 }
 
 void IniFile::addSection(const std::string& Name)
 {
 	if(!isSection(Name))
 	{
-		insert(std::make_pair(Name, new Section(Name)));
+		_data.insert(std::make_pair(Name, new Section(Name)));
 	}
 }
 
 void IniFile::addValue(const std::string& Name, const std::string& Key, const std::string& Value)
 {
 	addSection(Name);
-	Section *S = (*this)[Name];
+	Section *S = _data[Name];
 	if(!isKey(Name, Key))
 	{
 		S->insert(std::make_pair(Key, Value));
@@ -110,23 +123,37 @@ void IniFile::addValue(const std::string& Name, const std::string& Key, const st
 	}
 }
 
-Ini::Section* IniFile::getSection(const std::string& Name)
+const IniFile::Section& IniFile::getSection(const std::string& Name) const
 {
-	return (*this)[Name];
+	return *_data.at(Name);
 }
 
-bool IniFile::isSection(const std::string& Name)
+const std::string& IniFile::getValue(const std::string& Key) const throw(std::out_of_range)
 {
-	return count(Name);
+	for(auto& s : _data)
+		if(s.second->isKey(Key)) return s.second->getValue(Key);
+	throw std::out_of_range("IniFile : Key not found !");
 }
 
-std::string IniFile::getValue(const std::string& Name, const std::string& Key)
+const std::string& IniFile::getValue(const std::string& Name, const std::string& Key) const
 {
-	return (*(*this)[Name])[Key];
+	return (*_data.at(Name)).at(Key);
 }
 
-bool IniFile::isKey(const std::string& Name, const std::string& Key)
+bool IniFile::isSection(const std::string& Name) const
 {
-	return isSection(Name) && (*this)[Name]->count(Key);
+	return _data.count(Name) > 0;
+}
+
+bool IniFile::isKey(const std::string& Key) const
+{
+	for(auto& s : _data)
+		if(s.second->isKey(Key)) return true;
+	return false;
+}
+
+bool IniFile::isKey(const std::string& Name, const std::string& Key) const
+{
+	return isSection(Name) && _data.at(Name)->count(Key);
 }
 

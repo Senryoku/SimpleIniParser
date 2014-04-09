@@ -15,33 +15,25 @@
  * https://github.com/Senryoku/SimpleIniParser
  ******************************************************************************/
 
-namespace Ini {
-	class Pair : public std::pair<std::string, std::string>
-	{
-		public:
-			Pair(std::pair<std::string, std::string> P) : std::pair<std::string, std::string>(P) {}
-
-			const std::string& getKey() { return first; }
-			const std::string& getValue() { return second; }
-	};
-
-	class Section : public std::map<std::string, std::string>
-	{
-		private:
-			std::string myName;
-		public:
-			Section(std::string Name) : myName(Name) {}
-
-			const std::string& getName() { return myName; }
-			const std::string& getValue(const std::string& Key) { return (*this)[Key]; }
-	};
-}
-
-using namespace Ini;
-
-class IniFile : public std::map<std::string, Section*>
+class IniFile
 {
 	public:
+		class Section : public std::map<std::string, std::string>
+		{
+			private:
+				std::string _name;
+			public:
+				Section(const std::string& Name) : _name(Name) {}
+
+				inline const std::string& getName() const { return _name; }
+				inline const std::string& getValue(const std::string& Key) const { return at(Key); }
+				inline std::string& operator[](const std::string& Key) { return std::map<std::string, std::string>::operator[](Key); }
+				inline const std::string& operator[](const std::string& Key) const { return getValue(Key); }
+				inline bool isKey(const std::string& Key) const { return count(Key) > 0; }
+		};
+		
+		using Map = std::map<std::string, Section*>;
+		
 		/** @brief Default constructor */
 		IniFile();
 		/** @brief Constructor with file
@@ -50,13 +42,20 @@ class IniFile : public std::map<std::string, Section*>
 		 * @param Path Path to an existing .ini file
 		**/
 		IniFile(const std::string& Path);
+		
+		IniFile(const IniFile&);
+		IniFile(IniFile&&) =default;
+		
+		IniFile& operator=(const IniFile&);
+		IniFile& operator=(IniFile&&) =default;
+		
 		/** @brief Default destructor */
 		~IniFile();
 
 		/** @brief Return current file */
-		std::string getPath() { return myPath; }
+		const std::string& getPath() const { return _path; }
 		/** @brief Sets path used by save() and load() */
-		void setPath(const std::string& Path) { myPath = Path; }
+		void setPath(const std::string& Path) { _path = Path; }
 
 		/** @brief Re-Loads current file */
 		bool load();
@@ -74,7 +73,7 @@ class IniFile : public std::map<std::string, Section*>
 		bool save(const std::string& Path);
 
 		/** @brief Frees current data **/
-		void free();
+		void clear();
 
 		/** @brief Add a section
 		 *
@@ -90,63 +89,90 @@ class IniFile : public std::map<std::string, Section*>
 		 * @param Key Key
 		 * @param Value Value
 		**/
-		void addValue(const std::string& Name, const std::string& Key, const std::string& Value = "");
-		void addKey(const std::string& Name, const std::string& Key, const std::string& Value = "") { addValue(Name, Key, Value); }
+		void addValue(const std::string& Name, const std::string& Key, 
+					  const std::string& Value = "");
+		inline void addKey(const std::string& Name, const std::string& Key, 
+						   const std::string& Value = "") 
+		{ addValue(Name, Key, Value); }
 
 		/** @brief Returns section "Name"
 		 *
 		 * @param Name Section's name
 		 * @return Section
 		**/
-		Section* getSection(const std::string&Name);
+		const Section& getSection(const std::string& Name) const;
+		inline const Section& operator[](const std::string& Name) const 
+		{ return getSection(Name); }
+		
+		inline const std::string& operator()(const std::string& Section, 
+											 const std::string& Key) const 
+		{ return getSection(Section).getValue(Key); }
 
-		/** @brief Tests if a section exists
+		/** @brief Search for a value in any Section (the first found is returned)
 		 *
-		 * @param Name Section's name
-		 * @return true if section exists
-		**/
-		bool isSection(const std::string& Name);
-
-		/** @brief Tests if a key (in a given section) exists
-		 *
-		 * @param Name Section's name
 		 * @param Key Key
-		 * @return true if section/key exists
+		 * @return Value
 		**/
-		bool isKey(const std::string& Name, const std::string& Key);
-
+		const std::string& getValue(const std::string& Key) const throw(std::out_of_range);
+		
 		/** @brief Search for a value
 		 *
 		 * @param Name Section's name
 		 * @param Key Key
 		 * @return Value
 		**/
-		std::string getValue(const std::string& Name, const std::string& Key);
+		const std::string& getValue(const std::string& Name, const std::string& Key) const;
 
 		/** @brief Returns sections count
 		 *
 		 * @return Sections count
 		**/
-		unsigned int getSectionCount() { return (*this).size(); }
+		size_t getSectionCount() const { return _data.size(); }
 
 		/** @brief Used to iterate on Sections
 		 *
 		 * Example :
 		 * @code
-		 * for(IniFile::const_iterator it = Config.getIterator();
-		 * it != Config.getEnd(); it++)
+		 * for(auto it = Config.begin();
+		 * it != Config.end(); it++)
 		 * 	std::cout << "[" << it->first << "]" << std::endl;
 		 * @see getEnd()
 		**/
-		IniFile::const_iterator getIterator() { return (*this).begin(); }
+		Map::iterator begin() { return _data.begin(); }
+		Map::const_iterator begin() const { return _data.cbegin(); }
 
 		/** @brief Used to iterate on Sections (End test)
 		 *
 		**/
-		IniFile::const_iterator getEnd() { return (*this).end(); }
+		Map::iterator end() { return _data.end(); }
+		Map::const_iterator end() const { return _data.cend(); }
+
+		/** @brief Tests if a section exists
+		 *
+		 * @param Name Section's name
+		 * @return true if section exists
+		**/
+		bool isSection(const std::string& Name) const;
+		
+		/** @brief Tests if a key (in any section) exists
+		 *
+		 * @param Key Key
+		 * @return true if section/key exists
+		**/
+		bool isKey(const std::string& Key) const;
+		
+		/** @brief Tests if a key (in a given section) exists
+		 *
+		 * @param Name Section's name
+		 * @param Key Key
+		 * @return true if section/key exists
+		**/
+		bool isKey(const std::string& Name, const std::string& Key) const;
 
 	private:
-		std::string myPath; ///< Current File
+		std::string _path; ///< Current File
+		
+		Map			_data;
 };
 
 #endif // _INIFILE_HPP_

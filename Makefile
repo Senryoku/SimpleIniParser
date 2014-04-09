@@ -1,9 +1,10 @@
 C = g++
-OPT = -Wall -pedantic
+OPT = -Wall -pedantic -std=c++11
 OBJ = obj/
 SRC = src/
 BIN = bin/
-LIBS = -lsfml-window -lsfml-system
+EXEC = IniTest
+LIBS =
 
 all : IniTest
 
@@ -13,16 +14,16 @@ $(OBJ)IniFile.o : $(SRC)IniFile.cpp
 $(OBJ)IniTest.o : $(SRC)IniTest.cpp
 	$(C) $(OPT) $^ -c -o $@
 	
-IniTest : $(OBJ)IniFile.o $(OBJ)IniTest.o
+$(EXEC) : $(OBJ)IniFile.o $(OBJ)IniTest.o
 	$(C) $^ -o $(BIN)$@ $(LIBS)
 	
 debug : debug_option all
 
 debug_option :
-OPT = -Wall -pedantic -g 
+OPT = -Wall -pedantic -g -std=c++11
 
-run :
-	./$(EXEC)
+run : $(EXEC)
+	./$(BIN)$(EXEC)
 
 clean:
 	/bin/rm -rf $(OBJ)*.o $(BIN)*
